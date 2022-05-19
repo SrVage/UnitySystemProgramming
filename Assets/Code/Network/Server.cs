@@ -47,8 +47,8 @@ namespace Code.Network
         
         public void SendMessageToAll(string message)
         {
-            foreach (var connectionID in _connectionIDs) 
-                SendMessage(message, connectionID);
+            foreach (var userName in _usersName) 
+                SendMessage(message, userName.Key);
         }
 
         private void Update()
@@ -69,7 +69,26 @@ namespace Code.Network
                 switch (recData)
                 {
                     case NetworkEventType.DataEvent:
-                        string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
+                        if (int.TryParse(Encoding.Unicode.GetString(recBuffer, 0, 2), out int type))
+                        {
+                            Debug.Log(type);
+                            string message = Encoding.Unicode.GetString(recBuffer, 2, dataSize-2);
+                            Debug.Log(message);
+                            if (type == 0)
+                            {
+                                _usersName[connectionId] = message;
+                                Debug.Log(messageString);
+                            }
+
+                            if (type == 1)
+                            {
+                                messageString = $"{_usersName[connectionId]}: {message} \n";
+                                SendMessageToAll(messageString); 
+                                Debug.Log(messageString);
+                            }
+                        }
+                        
+                        /*string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
                         if (string.IsNullOrEmpty(_usersName[connectionId]))
                         {
                             _usersName[connectionId] = message;
@@ -79,18 +98,18 @@ namespace Code.Network
                             messageString = $"{_usersName[connectionId]}: {message} \n";
                             SendMessageToAll(messageString); 
                             Debug.Log(messageString);
-                        }
+                        }*/
                         break;
                     case NetworkEventType.ConnectEvent:
                         //_connectionIDs.Add(connectionId);
                         _usersName.Add(connectionId, String.Empty);
-                        messageString = $"Player {connectionId} has connected. \n";
+                        messageString = $"Player {connectionId} has connected.";
                         SendMessageToAll(messageString);
                         Debug.Log(messageString);
                         break;
                     case NetworkEventType.DisconnectEvent:
                         _usersName.Remove(connectionId);
-                        messageString = $"Player {connectionId} has disconnected. \n";
+                        messageString = $"Player {connectionId} has disconnected.";
                         SendMessageToAll(messageString);
                         Debug.Log(messageString);
                         break;

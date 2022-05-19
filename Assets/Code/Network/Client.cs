@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -8,7 +9,9 @@ namespace Code.Network
     public class Client:MonoBehaviour
     {
         public delegate void OnMessageReceive(object message);
+        public delegate void OnConnectReceive();
         public event OnMessageReceive onMessageReceive;
+        public event OnConnectReceive onConnectReceive;
         private const int MAXCONNECTION = 10;
         private int _port = 0;
         private int _serverPort = 5805; 
@@ -63,13 +66,14 @@ namespace Code.Network
                         Debug.Log(messageString);
                         break;
                     case NetworkEventType.ConnectEvent:
-                        messageString = "You have been connected to server.";
+                        messageString = "You have been connected to server.\n";
                         onMessageReceive?.Invoke(messageString); 
+                        onConnectReceive?.Invoke();
                         Debug.Log(messageString);
                         break;
                     case NetworkEventType.DisconnectEvent:
                         _isConnected = false;
-                        messageString = "You have been disconnected from server.";
+                        messageString = "You have been disconnected from server.\n";
                         onMessageReceive?.Invoke(messageString); 
                         Debug.Log(messageString);
                         break;
@@ -85,11 +89,24 @@ namespace Code.Network
             }
         }
         
-        public void SendMessage(string message) 
+        public void SendMessage(string message, MessageType type = MessageType.Message)
         {
-            byte[] buffer = Encoding.Unicode.GetBytes(message);
+            List<byte> bufferMessage = new List<byte>();
+            switch (type)
+            {
+                case MessageType.PlayerName:
+                    bufferMessage.AddRange(Encoding.Unicode.GetBytes("0"));
+                    break;
+                case MessageType.Message:
+                    bufferMessage.AddRange(Encoding.Unicode.GetBytes("1"));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+            }
+            bufferMessage.AddRange(Encoding.Unicode.GetBytes(message));
+             byte[] buffer = bufferMessage.ToArray();
             NetworkTransport.Send(_hostID, _connectionID, _reliableChannel, buffer, 
-                message.Length * sizeof(char), out _error);
+                (message.Length+1) * sizeof(char), out _error);
             if ((NetworkError)_error != NetworkError.Ok) 
                 Debug.Log((NetworkError)_error); 
         }

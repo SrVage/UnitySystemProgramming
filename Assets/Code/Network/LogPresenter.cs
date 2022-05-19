@@ -13,6 +13,7 @@ namespace Code.Network
 
         public void Log(string log)
         {
+            Debug.Log(log);
             _text.text += log;
             var size = _contentTransform.sizeDelta;
             size.y = _textTransform.sizeDelta.y+100;

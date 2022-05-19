@@ -27,6 +27,12 @@ namespace Code.Network
             _sendMessageButton.onClick.AddListener(SendMessage);
             _chatInputField.onEndEdit.AddListener((text) =>SendMessage());
             _client.onMessageReceive += ReceiveMessage;
+            _client.onConnectReceive += SendName;
+        }
+
+        private void SendName()
+        {
+            _client.SendMessage(_nameInputField.text, MessageType.PlayerName);
         }
 
         private void StartServer() =>    
@@ -35,7 +41,7 @@ namespace Code.Network
         private void ShutDownServer() =>    
             _server.ShutDownServer();
     
-        private async void Connect()
+        private void Connect()
         {
             if (string.IsNullOrEmpty(_nameInputField.text))
             {
@@ -43,7 +49,7 @@ namespace Code.Network
                 return;
             }
             _client.Connect();
-            _client.SendMessage(_nameInputField.text);
+            //_client.SendMessage(_nameInputField.text);
         }
 
         private void Disconnect() =>    
@@ -51,6 +57,8 @@ namespace Code.Network
 
         private void SendMessage()
         {
+            if (string.IsNullOrEmpty(_chatInputField.text))
+                return;
             _client.SendMessage(_chatInputField.text);
             _chatInputField.text = "";
         }
