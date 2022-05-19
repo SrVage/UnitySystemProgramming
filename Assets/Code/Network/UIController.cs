@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,19 +12,20 @@ namespace Code.Network
         [SerializeField] private Button _connectClientButton;
         [SerializeField] private Button _disconnectClientButton;
         [SerializeField] private Button _sendMessageButton;
-        [SerializeField] private TMP_InputField _inputField;
+        [SerializeField] private TMP_InputField _chatInputField;
+        [SerializeField] private TMP_InputField _nameInputField;
         [SerializeField] private LogPresenter _textField;
         [SerializeField] private Server _server;
         [SerializeField] private Client _client;
 
         private void Start()
         {
-            _startServerButton.onClick.AddListener(() => StartServer());
-            _shutDownServerButton.onClick.AddListener(() => ShutDownServer());
-            _connectClientButton.onClick.AddListener(() => Connect());
-            _disconnectClientButton.onClick.AddListener(() => Disconnect());
-            _sendMessageButton.onClick.AddListener(() => SendMessage());
-            _inputField.onEndEdit.AddListener((text) =>SendMessage());
+            _startServerButton.onClick.AddListener(StartServer);
+            _shutDownServerButton.onClick.AddListener(ShutDownServer);
+            _connectClientButton.onClick.AddListener(Connect);
+            _disconnectClientButton.onClick.AddListener(Disconnect);
+            _sendMessageButton.onClick.AddListener(SendMessage);
+            _chatInputField.onEndEdit.AddListener((text) =>SendMessage());
             _client.onMessageReceive += ReceiveMessage;
         }
 
@@ -33,16 +35,24 @@ namespace Code.Network
         private void ShutDownServer() =>    
             _server.ShutDownServer();
     
-        private void Connect() =>    
-            _client.Connect();    
+        private async void Connect()
+        {
+            if (string.IsNullOrEmpty(_nameInputField.text))
+            {
+                _textField.Log("Please, enter player's name \n");
+                return;
+            }
+            _client.Connect();
+            _client.SendMessage(_nameInputField.text);
+        }
 
         private void Disconnect() =>    
             _client.Disconnect();    
 
         private void SendMessage()
         {
-            _client.SendMessage(_inputField.text);
-            _inputField.text = "";
+            _client.SendMessage(_chatInputField.text);
+            _chatInputField.text = "";
         }
 
         private void ReceiveMessage(object message) =>    

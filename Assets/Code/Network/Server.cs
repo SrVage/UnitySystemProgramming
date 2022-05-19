@@ -15,6 +15,7 @@ namespace Code.Network
         private bool _isStarted;
         private byte _error;
         private List<int> _connectionIDs = new List<int>();
+        private Dictionary<int, string> _usersName = new Dictionary<int, string>();
 
         public void StartServer()
         {
@@ -69,19 +70,27 @@ namespace Code.Network
                 {
                     case NetworkEventType.DataEvent:
                         string message = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                        messageString = $"Player {connectionId}: {message}";
-                        SendMessageToAll(messageString); 
-                        Debug.Log(messageString);
+                        if (string.IsNullOrEmpty(_usersName[connectionId]))
+                        {
+                            _usersName[connectionId] = message;
+                        }
+                        else
+                        {
+                            messageString = $"{_usersName[connectionId]}: {message} \n";
+                            SendMessageToAll(messageString); 
+                            Debug.Log(messageString);
+                        }
                         break;
                     case NetworkEventType.ConnectEvent:
-                        _connectionIDs.Add(connectionId);
-                        messageString = $"Player {connectionId} has connected.";
+                        //_connectionIDs.Add(connectionId);
+                        _usersName.Add(connectionId, String.Empty);
+                        messageString = $"Player {connectionId} has connected. \n";
                         SendMessageToAll(messageString);
                         Debug.Log(messageString);
                         break;
                     case NetworkEventType.DisconnectEvent:
-                        _connectionIDs.Remove(connectionId);
-                        messageString = $"Player {connectionId} has disconnected.";
+                        _usersName.Remove(connectionId);
+                        messageString = $"Player {connectionId} has disconnected. \n";
                         SendMessageToAll(messageString);
                         Debug.Log(messageString);
                         break;
